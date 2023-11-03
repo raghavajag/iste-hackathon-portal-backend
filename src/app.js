@@ -5,6 +5,10 @@ const app = express();
 const authRouter = require("./routes/authRoutes");
 const userRouter = require("./routes/userRoutes");
 
+
+// middlewares
+const errorHandler = require('./middleware/errorHandler')
+
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
@@ -16,4 +20,5 @@ app.get("/heartbeat", function (req, res) {
   });
 });
 
+app.use(errorHandler)
 module.exports = app;

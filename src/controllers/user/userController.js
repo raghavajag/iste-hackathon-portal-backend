@@ -12,6 +12,6 @@ exports.getDetails = async (req, res, next) => {
     });
   } catch (error) {
     console.log(error);
-    return res.json({ success: false, message: "Something went wrong." })
+    next(error)
   }
 }

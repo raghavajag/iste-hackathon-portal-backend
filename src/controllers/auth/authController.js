@@ -2,13 +2,14 @@ const User = require("../../models/userModel");
 const bcrypt = require("bcrypt");
 const { generateTokens } = require("./utils")
 const { OAuth2Client } = require("google-auth-library");
+const ErrorResponse = require("../../utils/ErrorResponse");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 exports.basicAuthSignUp = async (req, res, next) => {
   try {
     const user = await User.findOne({ username: req.body.username });
     if (user) {
-      return res.json({ success: false, message: "Username already exists" });
+      return next(new ErrorResponse("Username already exists", 400));
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -28,73 +29,83 @@ exports.basicAuthSignUp = async (req, res, next) => {
 
     const savedUser = await User.findOne({ username: req.body.username });
     const { accessToken } = await generateTokens(savedUser.id);
-    res.status(201).json({
+    return res.status(201).json({
       message: "Account created successfully",
       accessToken,
     });
   } catch (error) {
     console.log(error);
-    return res.json({ success: false, message: "Something went wrong." })
+    next(error)
   }
 }
 
 exports.basicAuthLogIn = async (req, res, next) => {
-  const user = await User.findOne({ username: req.body.username });
-  if (!user) {
-    return res.json({ success: false, message: "Invalid username or password" })
+  try {
+    const user = await User.findOne({ username: req.body.username });
+    if (!user) {
+      return next(new ErrorResponse("Invalid username or password", 400))
+    }
+
+    const verifiedPassword = await bcrypt.compare(
+      req.body.password,
+      user.password
+    );
+
+    if (!verifiedPassword) {
+      return next(new ErrorResponse("Invalid username or password", 400))
+    }
+
+    const { accessToken } = await generateTokens(user.id);
+
+    return res.status(200).json({
+      message: "Logged in sucessfully", accessToken,
+    });
+  } catch (error) {
+    console.log(error);
+    next(error);
   }
-
-  const verifiedPassword = await bcrypt.compare(
-    req.body.password,
-    user.password
-  );
-
-  if (!verifiedPassword) {
-    return res.json({ success: false, message: "Invalid username or password" })
-  }
-
-  const { accessToken } = await generateTokens(user.id);
-
-  res.status(200).json({
-    message: "Logged in sucessfully", accessToken,
-  });
 }
 
 exports.googleAuth = async (req, res, next) => {
-  const token = req.body.token;
-  const emailFromClient = req.body.email;
-  const ticket = await client.verifyIdToken({
-    idToken: token,
-    audience: process.env.GOOGLE_CLIENT_ID,
-  });
-  if (!ticket) {
-    return res.json({ success: false, message: "Invalid username or password" })
-  }
+  try {
+    const token = req.body.token;
+    const emailFromClient = req.body.email;
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    if (!ticket) {
+      return next(new ErrorResponse("Invalid username or password", 400))
+    }
 
-  const { email } = ticket.getPayload();
-  if (email !== emailFromClient) {
-    return res.json({ success: false, message: "Invalid username or password" })
-  }
-
-  const user = await User.findOne({ email: emailFromClient });
-
-  if (!user) {
-    await new User({
-      loginType: "GOOGLE_LOGIN",
-      email: emailFromClient,
-    }).save();
+    const { email } = ticket.getPayload();
+    if (email !== emailFromClient) {
+      return next(new ErrorResponse("Invalid username or password", 400))
+    }
 
     const user = await User.findOne({ email: emailFromClient });
-    const { accessToken } = await generateTokens(user);
 
-    return res.status(201).json({
-      message: "User Login Sucessfull",
+    if (!user) {
+      await new User({
+        loginType: "GOOGLE_LOGIN",
+        email: emailFromClient,
+      }).save();
+
+      const user = await User.findOne({ email: emailFromClient });
+      const { accessToken } = await generateTokens(user);
+
+      return res.status(201).json({
+        message: "User Login Sucessfull",
+        accessToken,
+      });
+    }
+    const { accessToken } = await generateTokens(user);
+    return res.status(200).json({
+      message: "Logged in sucessfully",
       accessToken,
     });
+  } catch (error) {
+    console.log(error);
+    next(error)
   }
-  const { accessToken } = await generateTokens(user);
-  res.status(200).json({
-    message: "Logged in sucessfully",
-    accessToken,
-  });
 }
