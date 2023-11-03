@@ -3,7 +3,7 @@ const jwt = require("jsonwebtoken");
 const generateTokens = async (id) => {
   try {
     const payload = {
-      id
+      _id: id
     };
     const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: "5d",

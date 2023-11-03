@@ -27,7 +27,7 @@ exports.basicAuthSignUp = async (req, res, next) => {
     }).save();
 
     const savedUser = await User.findOne({ username: req.body.username });
-    const { accessToken } = await generateTokens(savedUser);
+    const { accessToken } = await generateTokens(savedUser.id);
     res.status(201).json({
       message: "Account created successfully",
       accessToken,
@@ -53,7 +53,7 @@ exports.basicAuthLogIn = async (req, res, next) => {
     return res.json({ success: false, message: "Invalid username or password" })
   }
 
-  const { accessToken } = await generateTokens(user);
+  const { accessToken } = await generateTokens(user.id);
 
   res.status(200).json({
     message: "Logged in sucessfully", accessToken,
