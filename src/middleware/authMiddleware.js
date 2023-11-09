@@ -16,7 +16,7 @@ const auth = async (req, res, next) => {
     if (!user) {
       next(new ErrorResponse("Access Denied: Invalid token", 401))
     }
-    req.user = { _id: user._id, username: user.username };
+    req.user = { _id: user._id };
     next();
   } catch (error) {
     console.log(error);
