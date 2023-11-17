@@ -66,3 +66,53 @@ exports.removeMember = async (req, res, next) => {
 
   return res.json({ success: true, message: "Member removed from the team successfully" });
 }
+exports.getTeamDetails = async (req, res, next) => {
+  const team = await Teams.findById(req.params.teamId).populate('teamLeaderId', 'name email').populate('members', 'name email')
+  if (!team) {
+    return next(new ErrorResponse("Team not found", 404));
+  }
+  return res.json({ success: true, team });
+}
+exports.updateTeamDetails = async (req, res, next) => {
+  const team = await Teams.findById(req.params.teamId)
+  if (!team) {
+    return next(new ErrorResponse("Team not found", 404));
+  }
+  if (team.teamLeaderId.toString() !== req.user._id.toString()) {
+    return next(new ErrorResponse("You don't have permission to update the team details", 403));
+  }
+  const { teamName, projectName, youtubeUrl, desc, techStack } = req.body;
+  const newTeamName = await Teams.findOne({ teamName })
+  if (newTeamName && newTeamName._id.toString() !== team._id.toString()) {
+    return next(new ErrorResponse("Team name already exists", 400));
+  }
+
+  team.teamName = teamName;
+  team.youtubeUrl = youtubeUrl;
+  team.desc = desc;
+  team.techStack = techStack;
+  await team.save();
+  return res.json({ success: true, message: "Team details updated successfully" });
+}
+exports.deleteTeam = async (req, res, next) => {
+  const team = await Teams.findById(req.params.teamId)
+  if (!team) {
+    return next(new ErrorResponse("Team not found", 404));
+  }
+  if (team.teamLeaderId.toString() !== req.user._id.toString()) {
+    return next(new ErrorResponse("You don't have permission to delete the team", 403));
+  }
+  await team.remove();
+  return res.json({ success: true, message: "Team deleted successfully" });
+}
+
+exports.getTeamToken = async (req, res, next) => {
+  const team = await Teams.findById(req.params.teamId)
+  if (!team) {
+    return next(new ErrorResponse("Team not found", 404));
+  }
+  if (team.teamLeaderId.toString() !== req.user._id.toString()) {
+    return next(new ErrorResponse("You don't have permission to get the team token", 403));
+  }
+  return res.json({ success: true, token: team.referralCode });
+}
