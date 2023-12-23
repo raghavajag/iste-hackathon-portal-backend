@@ -7,6 +7,9 @@ const validate = require('../middleware/validate')
 const { createTeam, addMember, removeMember, getTeamDetails, getTeamToken, deleteTeam, updateTeamDetails } = require("../controllers/teams/validationSchema")
 
 teamRouter.post("/", auth, validate.body(createTeam), asyncHandler(teamController.createTeam));
+/*
+@desc: Temporary route to get all teams, will be removed in production
+*/
 teamRouter.get("/", auth, asyncHandler(teamController.getTeams));
 teamRouter.post("/members", auth, validate.body(addMember), asyncHandler(teamController.addMember));
 teamRouter.delete("/members/:memberId/:teamId", auth, validate.params(removeMember), asyncHandler(teamController.removeMember));

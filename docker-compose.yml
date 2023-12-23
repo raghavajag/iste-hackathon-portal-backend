@@ -1,0 +1,20 @@
+services:
+  nginx:
+    image: nginx:stable-alpine
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+  api:
+    build: .
+    image: raghavajag/hack-protal
+    depends_on:
+      - mongo
+    env_file:
+      - .env
+  mongo:
+    image: mongo
+    volumes:
+      - mongo-db:/data/db
+    ports:
+      - "27017:27017"
+volumes:
+  mongo-db:

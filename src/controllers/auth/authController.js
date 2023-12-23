@@ -6,7 +6,7 @@ const ErrorResponse = require("../../utils/ErrorResponse");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 exports.basicAuthSignUp = async (req, res, next) => {
-  const user = await User.findOne({ username: req.body.username });
+  const user = await User.findOne({ $or: [{ username: req.body.username }, { email: req.body.email }] });
   if (user) {
     return next(new ErrorResponse("Username already exists", 400));
   }
@@ -81,14 +81,14 @@ exports.googleAuth = async (req, res, next) => {
     }).save();
 
     const user = await User.findOne({ email: emailFromClient });
-    const { accessToken } = await generateTokens(user);
+    const { accessToken } = await generateTokens(user.id);
 
     return res.status(201).json({
       message: "User Login Sucessfull",
       accessToken,
     });
   }
-  const { accessToken } = await generateTokens(user);
+  const { accessToken } = await generateTokens(user.id);
   return res.status(200).json({
     message: "Logged in sucessfully",
     accessToken,
