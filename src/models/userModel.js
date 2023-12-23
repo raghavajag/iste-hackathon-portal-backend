@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
+      select: false
     },
     email: {
       type: String,
@@ -35,6 +36,11 @@ const userSchema = new mongoose.Schema(
       enum: ['GOOGLE_LOGIN', 'BASIC_LOGIN'],
       default: 'BASIC_LOGIN'
     },
+    role: {
+      type: String,
+      enum: ['USER', 'ADMIN'],
+      default: 'USER'
+    }
   },
   { collection: "Users" }
 );

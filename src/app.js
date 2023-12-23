@@ -5,6 +5,7 @@ const app = express();
 const authRouter = require("./routes/authRoutes");
 const userRouter = require("./routes/userRoutes");
 const teamRouter = require('./routes/teamRoutes');
+const adminRouter = require('./routes/adminRoutes');
 
 // middlewares
 const errorHandler = require('./middleware/errorHandler')
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/teams", teamRouter);
+app.use("/api/admin", adminRouter);
 
 app.get("/heartbeat", function (req, res) {
   res.status(200).json({

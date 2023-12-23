@@ -1,3 +1,4 @@
+const Admin = require("../../models/adminModels");
 const User = require("../../models/userModel");
 const bcrypt = require("bcrypt");
 const { generateTokens } = require("./utils")
@@ -35,7 +36,7 @@ exports.basicAuthSignUp = async (req, res, next) => {
 }
 
 exports.basicAuthLogIn = async (req, res, next) => {
-  const user = await User.findOne({ username: req.body.username });
+  const user = await User.findOne({ username: req.body.username }).select("+password");
   if (!user) {
     return next(new ErrorResponse("Invalid username or password", 400))
   }
@@ -58,7 +59,6 @@ exports.basicAuthLogIn = async (req, res, next) => {
 
 exports.googleAuth = async (req, res, next) => {
   const token = req.body.token;
-  const emailFromClient = req.body.email;
   const ticket = await client.verifyIdToken({
     idToken: token,
     audience: process.env.GOOGLE_CLIENT_ID,
@@ -68,19 +68,17 @@ exports.googleAuth = async (req, res, next) => {
   }
 
   const { email } = ticket.getPayload();
-  if (email !== emailFromClient) {
-    return next(new ErrorResponse("Invalid username or password", 400))
-  }
-
-  const user = await User.findOne({ email: emailFromClient });
+  const isAdmin = await Admin.exists({ email });
+  const user = await User.findOne({ email });
 
   if (!user) {
     await new User({
       loginType: "GOOGLE_LOGIN",
-      email: emailFromClient,
+      email,
+      role: isAdmin ? "ADMIN" : "USER",
     }).save();
 
-    const user = await User.findOne({ email: emailFromClient });
+    const user = await User.findOne({ email });
     const { accessToken } = await generateTokens(user.id);
 
     return res.status(201).json({
@@ -88,6 +86,7 @@ exports.googleAuth = async (req, res, next) => {
       accessToken,
     });
   }
+
   const { accessToken } = await generateTokens(user.id);
   return res.status(200).json({
     message: "Logged in sucessfully",
