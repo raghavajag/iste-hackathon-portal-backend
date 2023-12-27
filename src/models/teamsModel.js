@@ -23,7 +23,7 @@ const teamSchema = mongoose.Schema(
     },
     techStack: [
       {
-        type: Number,
+        type: String,
       },
     ],
     youtubeUrl: {

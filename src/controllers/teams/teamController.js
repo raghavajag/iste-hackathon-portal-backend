@@ -1,5 +1,5 @@
 const Teams = require("../../models/teamsModel");
-const ErrorResponse = require("../../utils/errorResponse");
+const ErrorResponse = require("../../utils/ErrorResponse");
 const uuid = require("uuid");
 
 exports.createTeam = async (req, res, next) => {
