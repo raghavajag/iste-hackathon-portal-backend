@@ -7,24 +7,21 @@ const ErrorResponse = require("../../utils/ErrorResponse");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 exports.basicAuthSignUp = async (req, res, next) => {
+  const { username, password, email, phone } = req.body;
   const user = await User.findOne({ $or: [{ username: req.body.username }, { email: req.body.email }] });
   if (user) {
     return next(new ErrorResponse("Username already exists", 400));
   }
 
   const salt = await bcrypt.genSalt(10);
-  const hashPassword = await bcrypt.hash(req.body.password, salt);
+  const hashPassword = await bcrypt.hash(password, salt);
 
   await new User({
     loginType: "BASIC_LOGIN",
-    username: req.body.username,
+    username,
     password: hashPassword,
-    email: req.body.email,
-    hasFilledDetails: false,
-    firstName: null,
-    lastName: null,
-    mobileNumber: null,
-    regNo: null,
+    email,
+    mobileNumber: phone,
   }).save();
 
   const savedUser = await User.findOne({ username: req.body.username });
