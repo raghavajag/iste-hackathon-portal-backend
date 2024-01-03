@@ -14,7 +14,7 @@ teamRouter.get("/", auth, asyncHandler(teamController.getTeams));
 teamRouter.post("/members", auth, validate.body(addMember), asyncHandler(teamController.addMember));
 teamRouter.delete("/members/:memberId/:teamId", auth, validate.params(removeMember), asyncHandler(teamController.removeMember));
 teamRouter.get("/:teamId", auth, validate.params(getTeamDetails), asyncHandler(teamController.getTeamDetails))
-teamRouter.patch("/:teamId", auth, validate.params(updateTeamDetails), asyncHandler(teamController.updateTeamDetails))
+teamRouter.patch("/:teamId", auth, validate.params(getTeamDetails), validate.body(updateTeamDetails), asyncHandler(teamController.updateTeamDetails))
 teamRouter.get("/token/:teamId", auth, validate.params(getTeamToken), asyncHandler(teamController.getTeamToken))
 teamRouter.delete("/:teamId", auth, validate.params(deleteTeam), asyncHandler(teamController.deleteTeam))
 module.exports = teamRouter;

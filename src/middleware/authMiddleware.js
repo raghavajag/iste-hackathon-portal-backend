@@ -18,7 +18,6 @@ const auth = async (req, res, next) => {
       return next(new ErrorResponse("Please Verify your Email", 400));
     }
     req.user = { _id: user._id, role: user.role };
-    console.log(req.user);
     next();
   } catch (error) {
     console.log(error);

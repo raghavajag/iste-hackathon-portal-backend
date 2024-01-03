@@ -1,6 +1,7 @@
 const Teams = require("../../models/teamsModel");
 const ErrorResponse = require("../../utils/ErrorResponse");
 const uuid = require("uuid");
+const { Response } = require('../../utils/response');
 
 exports.createTeam = async (req, res, next) => {
   const { teamName, projectName } = req.body;
@@ -18,11 +19,11 @@ exports.createTeam = async (req, res, next) => {
     referralCode
   }).save();
 
-  return res.json({ success: true, message: "Team created successfully", data: { code: referralCode } })
+  return new Response("Team Created", { code: referralCode }, 201);
 }
 exports.getTeams = async (req, res, next) => {
   const teams = await Teams.find({}).populate('teamLeaderId', 'name email')
-  return res.json({ success: true, teams })
+  return new Response('Teams', teams, 200)
 }
 exports.addMember = async (req, res, next) => {
   const { code } = req.body
@@ -40,7 +41,7 @@ exports.addMember = async (req, res, next) => {
   team.members.push(req.user._id)
   await team.save();
 
-  return res.json({ success: true, message: "Member added to the team successfully" });
+  return new Response("Member added to the team successfully", {}, 200);
 }
 exports.removeMember = async (req, res, next) => {
   const { teamId, memberId } = req.params;
@@ -64,14 +65,14 @@ exports.removeMember = async (req, res, next) => {
 
   await team.save();
 
-  return res.json({ success: true, message: "Member removed from the team successfully" });
+  return new Response("Member removed from the team successfully", {}, 200);
 }
 exports.getTeamDetails = async (req, res, next) => {
   const team = await Teams.findById(req.params.teamId).populate('teamLeaderId', 'name email').populate('members', 'name email')
   if (!team) {
     return next(new ErrorResponse("Team not found", 404));
   }
-  return res.json({ success: true, team });
+  return new Response('Team Details', team, 200)
 }
 exports.updateTeamDetails = async (req, res, next) => {
   const team = await Teams.findById(req.params.teamId)
@@ -82,17 +83,25 @@ exports.updateTeamDetails = async (req, res, next) => {
     return next(new ErrorResponse("You don't have permission to update the team details", 403));
   }
   const { teamName, projectName, youtubeUrl, desc, techStack } = req.body;
-  const newTeamName = await Teams.findOne({ teamName })
-  if (newTeamName && newTeamName._id.toString() !== team._id.toString()) {
-    return next(new ErrorResponse("Team name already exists", 400));
+  if (teamName) {
+    const teamExists = await Teams.findOne({ teamName })
+    if (teamExists && teamExists._id.toString() !== team._id.toString()) {
+      return next(new ErrorResponse("Team name already exists", 400));
+    }
   }
-
+  else if (projectName) {
+    const teamExists = await Teams.findOne({ projectName })
+    if (teamExists && teamExists._id.toString() !== team._id.toString()) {
+      return next(new ErrorResponse("Project name already exists", 400));
+    }
+  }
   team.teamName = teamName;
+  team.projectName = projectName;
   team.youtubeUrl = youtubeUrl;
   team.desc = desc;
   team.techStack = techStack;
   await team.save();
-  return res.json({ success: true, message: "Team details updated successfully" });
+  return new Response('Team Details Updated', team, 200)
 }
 exports.deleteTeam = async (req, res, next) => {
   const team = await Teams.findById(req.params.teamId)
@@ -103,7 +112,7 @@ exports.deleteTeam = async (req, res, next) => {
     return next(new ErrorResponse("You don't have permission to delete the team", 403));
   }
   await team.remove();
-  return res.json({ success: true, message: "Team deleted successfully" });
+  return new Response('Team Deleted', {}, 200)
 }
 
 exports.getTeamToken = async (req, res, next) => {
@@ -114,5 +123,5 @@ exports.getTeamToken = async (req, res, next) => {
   if (team.teamLeaderId.toString() !== req.user._id.toString()) {
     return next(new ErrorResponse("You don't have permission to get the team token", 403));
   }
-  return res.json({ success: true, token: team.referralCode });
+  return new Response('Team Token', { token: team.referralCode }, 200)
 }

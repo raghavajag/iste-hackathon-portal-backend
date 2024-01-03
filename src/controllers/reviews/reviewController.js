@@ -1,6 +1,7 @@
 const Review = require("../../models/reviewModel");
 const Team = require("../../models/teamsModel");
-const ErrorResponse = require("../../utils/errorResponse");
+const ErrorResponse = require("../../utils/ErrorResponse");
+const { Response } = require('../../utils/response');
 
 exports.createReview = async (req, res, next) => {
   const { teamId, githubLink, figmaLink, otherLink, ideaDescription, reviewNumber } = req.body;
@@ -16,16 +17,9 @@ exports.createReview = async (req, res, next) => {
     ideaDescription,
     reviewNumber
   })
-  return res.json({
-    success: true,
-    data: review
-  })
+  return new Response("Review created", review, 201)
 }
 exports.getReviews = async (req, res, next) => {
   const { teamId } = req.params;
   const reviews = await Review.find({ teamId }).sort({ createdAt: -1 });
-  return res.json({
-    success: true,
-    data: reviews
-  })
 }

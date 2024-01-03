@@ -17,9 +17,9 @@ module.exports = {
     teamId: Joi.objectId().required()
   }),
   updateTeamDetails: Joi.object({
-    teamId: Joi.objectId().required(),
-    teamName: Joi.string().required(),
-    projectName: Joi.string().required(),
+    teamName: Joi.string(),
+    projectName: Joi.string(),
+    desc: Joi.string().max(500),
   }),
   getTeamToken: Joi.object({
     teamId: Joi.objectId().required(),
