@@ -82,6 +82,7 @@ exports.googleAuth = async (req, res, next) => {
       loginType: "GOOGLE_LOGIN",
       email,
       role: isAdmin ? "ADMIN" : "USER",
+      isEmailVerified: true,
     }).save();
 
     const user = await User.findOne({ email });

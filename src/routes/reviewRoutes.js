@@ -4,7 +4,7 @@ const reviewRouter = express.Router();
 const asyncHandler = require('../middleware/async')
 const auth = require("../middleware/authMiddleware")
 
-reviewRouter.post("/", auth, asyncHandler(reviewController.createReview));
-reviewRouter.get("/", auth, asyncHandler(reviewController.getReviews));
+reviewRouter.post("/:teamId", auth, asyncHandler(reviewController.createReview));
+reviewRouter.get("/:teamId", auth, asyncHandler(reviewController.getReviews));
 
 module.exports = reviewRouter;

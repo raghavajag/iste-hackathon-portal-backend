@@ -4,8 +4,12 @@ const ErrorResponse = require("../../utils/ErrorResponse");
 const { Response } = require('../../utils/response');
 
 exports.createReview = async (req, res, next) => {
-  const { teamId, githubLink, figmaLink, otherLink, ideaDescription, reviewNumber } = req.body;
+  const { teamId } = req.params;
+  const { githubLink, figmaLink, otherLink, ideaDescription, reviewNumber } = req.body;
   const team = await Team.findById(teamId);
+  if (!team) {
+    return next(new ErrorResponse("Team not found", 404));
+  }
   if (team.reviewNumber !== reviewNumber) {
     return next(new ErrorResponse("Invalid review number", 400))
   }
@@ -21,5 +25,6 @@ exports.createReview = async (req, res, next) => {
 }
 exports.getReviews = async (req, res, next) => {
   const { teamId } = req.params;
-  const reviews = await Review.find({ teamId }).sort({ createdAt: -1 });
+  const reviews = await Review.find({ teamId }).sort({ createdAt: -1 }).select("-__v");
+  return new Response("Reviews", reviews, 200)
 }
