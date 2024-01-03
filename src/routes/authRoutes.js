@@ -8,5 +8,5 @@ const { signUp, singIn, googleLogin } = require('../controllers/auth/validationS
 authRouter.post("/register", validate.body(signUp), asyncHandler(authController.basicAuthSignUp));
 authRouter.post("/login", validate.body(singIn), asyncHandler(authController.basicAuthLogIn));
 authRouter.post("/google", validate.body(googleLogin), asyncHandler(authController.googleAuth));
-
+authRouter.get("/confirmemail", asyncHandler(authController.confirmEmail))
 module.exports = authRouter;

@@ -5,41 +5,60 @@ const { generateTokens } = require("./utils")
 const { OAuth2Client } = require("google-auth-library");
 const ErrorResponse = require("../../utils/ErrorResponse");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const sendEmail = require('../../utils/sendMail');
+const crypto = require('crypto');
 
 exports.basicAuthSignUp = async (req, res, next) => {
   const { username, password, email, phone } = req.body;
-  const user = await User.findOne({ $or: [{ username: req.body.username }, { email: req.body.email }] });
-  if (user) {
+  const userExists = await User.findOne({ $or: [{ username: req.body.username }, { email: req.body.email }] });
+  if (userExists) {
     return next(new ErrorResponse("Username already exists", 400));
   }
 
   const salt = await bcrypt.genSalt(10);
   const hashPassword = await bcrypt.hash(password, salt);
 
-  await new User({
+  const user = await new User({
     loginType: "BASIC_LOGIN",
     username,
     password: hashPassword,
     email,
     mobileNumber: phone,
-  }).save();
-
-  const savedUser = await User.findOne({ username: req.body.username });
-  const { accessToken } = await generateTokens(savedUser.id);
-  return res.status(201).json({
-    message: "Account created successfully",
-    accessToken,
   });
+  const confirmEmailToken = user.generateEmailConfirmToken();
+  // Create reset url
+  const confirmEmailURL = `${req.protocol}://${process.env.host}/api/auth/confirmemail?token=${confirmEmailToken}`;
+  const message = `You are receiving this email because you need to confirm your email address. Please make a GET request to: \n\n ${confirmEmailURL}`;
+  try {
+    await user.save({ validateBeforeSave: false });
+    sendEmail({
+      email: user.email,
+      subject: 'Email confirmation token',
+      message
+    });
+    const { accessToken } = await generateTokens(user.id);
+    return res.json({
+      success: true, message: "register success", data: {
+        token: accessToken,
+      }
+    });
+  } catch (error) {
+    console.log(err);
+    return next(new ErrorResponse(err.message), 400);
+  }
 }
 
 exports.basicAuthLogIn = async (req, res, next) => {
-  const user = await User.findOne({ username: req.body.username }).select("+password");
+  const { email, password } = req.body;
+  const user = await User.findOne({ email }).select("+password");
   if (!user) {
     return next(new ErrorResponse("Invalid username or password", 400))
   }
-
+  if (!user.isEmailVerified) {
+    return next(new ErrorResponse("Please Verify your Email", 400));
+  }
   const verifiedPassword = await bcrypt.compare(
-    req.body.password,
+    password,
     user.password
   );
 
@@ -89,4 +108,38 @@ exports.googleAuth = async (req, res, next) => {
     message: "Logged in sucessfully",
     accessToken,
   });
+}
+exports.confirmEmail = async function (req, res, next) {
+  // grab token from email
+  const { token } = req.query;
+
+  if (!token) {
+    return next(new ErrorResponse('Invalid Token', 400));
+  }
+
+  const splitToken = token.split('.')[0];
+  const confirmEmailToken = crypto
+    .createHash('sha256')
+    .update(splitToken)
+    .digest('hex');
+
+  // get user by token
+  const user = await User.findOne({
+    confirmEmailToken,
+    isEmailVerified: false,
+  });
+
+  if (!user) {
+    return next(new ErrorResponse('Invalid Token', 400));
+  }
+
+  // update confirmed to true
+  user.confirmEmailToken = undefined;
+  user.isEmailVerified = true;
+
+  // save
+  user.save({ validateBeforeSave: false });
+
+  // return token
+  return res.json({ success: true, message: "Email Confirmed" })
 }

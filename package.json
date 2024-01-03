@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"dev": "nodemon -L src/server.js",
-    "start": "node src/server.js"
+		"start": "node src/server.js"
 	},
 	"keywords": [],
 	"author": "",
@@ -19,6 +19,7 @@
 		"joi-objectid": "^4.0.2",
 		"jsonwebtoken": "^9.0.2",
 		"mongoose": "^8.0.0",
+		"nodemailer": "^6.9.8",
 		"uuid": "^9.0.1"
 	},
 	"devDependencies": {
