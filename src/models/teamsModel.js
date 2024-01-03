@@ -38,6 +38,10 @@ const teamSchema = mongoose.Schema(
     fileId: {
       type: String,
     },
+    reviewNumber: {
+      type: Number,
+      enum: [1, 2, 3],
+    },
   },
   { collection: "HackTeams" }
 );
