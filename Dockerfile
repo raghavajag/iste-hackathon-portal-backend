@@ -9,6 +9,6 @@ RUN if [ $NODE_ENV = "development" ]; \
 
 
 COPY . ./
-ENV PORT 80 
+ENV PORT 5000
 EXPOSE $PORT
-# CMD ["node", "src/server.js"]
+CMD ["node", "src/server.js"]
