@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const cors = require('cors')
 
 // Routes
 const authRouter = require("./routes/authRoutes");
@@ -10,6 +11,14 @@ const reviewRouter = require('./routes/reviewRoutes');
 
 // middlewares
 const errorHandler = require('./middleware/errorHandler')
+
+app.use(cors(
+  {
+    origin: ['http://localhost:3000', 'http://20.197.4.190/', 'http://technicaportal.istevit.in/', 'https://technicaportal.netlify.app/'],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
+  }
+))
 
 app.use(express.json());
 
