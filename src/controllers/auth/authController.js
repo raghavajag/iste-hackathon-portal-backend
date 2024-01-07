@@ -27,9 +27,9 @@ exports.basicAuthSignUp = async (req, res, next) => {
     mobileNumber: phone,
   });
   const confirmEmailToken = user.generateEmailConfirmToken();
-  // Create reset url
+  // Create verify email url
   const confirmEmailURL = `${req.protocol}://${process.env.host}/api/auth/confirmemail?token=${confirmEmailToken}`;
-  const message = `You are receiving this email because you need to confirm your email address. Please make a GET request to: \n\n ${confirmEmailURL}`;
+  const message = `Please click on the link below to confirm your email address. \n\n ${confirmEmailURL}`
   await user.save({ validateBeforeSave: false });
   sendEmail({
     email: user.email,

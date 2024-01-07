@@ -17,4 +17,6 @@ teamRouter.get("/:teamId", auth, validate.params(getTeamDetails), asyncHandler(t
 teamRouter.patch("/:teamId", auth, validate.params(getTeamDetails), validate.body(updateTeamDetails), asyncHandler(teamController.updateTeamDetails))
 teamRouter.get("/token/:teamId", auth, validate.params(getTeamToken), asyncHandler(teamController.getTeamToken))
 teamRouter.delete("/:teamId", auth, validate.params(deleteTeam), asyncHandler(teamController.deleteTeam))
+// teamRouter.patch("/token/:teamId", auth, validate.params(getTeamToken), asyncHandler(teamController.createNewReferralCode))
+
 module.exports = teamRouter;

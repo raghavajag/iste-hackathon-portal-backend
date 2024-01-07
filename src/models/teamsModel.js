@@ -26,9 +26,6 @@ const teamSchema = mongoose.Schema(
         type: String,
       },
     ],
-    youtubeUrl: {
-      type: String,
-    },
     desc: {
       type: String,
     },
@@ -42,6 +39,9 @@ const teamSchema = mongoose.Schema(
       type: Number,
       enum: [1, 2, 3],
     },
+    track: {
+      type: String,
+    }
   },
   { collection: "HackTeams" }
 );
