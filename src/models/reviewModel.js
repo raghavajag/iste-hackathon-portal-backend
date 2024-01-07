@@ -33,11 +33,20 @@ const reviewSchema = new mongoose.Schema({
   reviewNumber: {
     type: Number,
     enum: [1, 2, 3],
+    required: true,
   },
   fileUrl: {
     type: String,
   },
-
+  progressSinceReviewOne: {
+    type: String,
+  },
+  prograssSinceReviewTwo: {
+    type: String,
+  },
+  deployedLink: {
+    type: String,
+  },
 });
 
 module.exports = mongoose.model('Review', reviewSchema);
