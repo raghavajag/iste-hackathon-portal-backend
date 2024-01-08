@@ -6,8 +6,8 @@ const User = require('../../models/userModel')
 
 exports.createTeam = async (req, res, next) => {
   const { teamName, regNo, track } = req.body;
-  const team = await Teams.findOne({ teamName })
-  if (team) {
+  const teamExists = await Teams.findOne({ teamName })
+  if (teamExists) {
     return next(new ErrorResponse("Team already exists", 400))
   }
   const referralCode = uuid.v4();
@@ -17,15 +17,16 @@ exports.createTeam = async (req, res, next) => {
     hasFilledDetails: true
   })
 
-  await new Teams({
+  const team = await new Teams({
     teamName,
     track,
     teamLeaderId: req.user._id,
     members: [req.user._id],
     referralCode
-  }).save();
+  });
+  await team.save();
+  return new Response("Team Created", { code: referralCode, teamName, track, _id: team.id }, 201);
 
-  return new Response("Team Created", { code: referralCode }, 201);
 }
 exports.getTeams = async (req, res, next) => {
   const teams = await Teams.find({}).populate('teamLeaderId', 'name email')
