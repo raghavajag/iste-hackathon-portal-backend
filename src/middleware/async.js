@@ -4,10 +4,13 @@ function asyncHandler(handler) {
   return async (req, res, next) => {
     try {
       const handlerData = await handler(req, res, next);
-      return handleResponse(handlerData, res);
-    }
-    catch (error) {
-      next(error)
+      if (handlerData instanceof Response) {
+        return handleResponse(handlerData, res);
+      } else {
+        return handlerData;
+      }
+    } catch (error) {
+      next(error);
     }
   }
 }
