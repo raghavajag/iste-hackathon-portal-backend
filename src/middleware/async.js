@@ -1,4 +1,5 @@
 const { handleResponse } = require("../utils/response");
+const { Response } = require("../utils/response");
 
 function asyncHandler(handler) {
   return async (req, res, next) => {
